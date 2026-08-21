@@ -164,8 +164,10 @@ The system displays:
 
 Example:
 
-**Status:** DELAYED  
-**Delay Probability:** 96.00%  
+**Status:** DELAYED
+
+**Delay Probability:** 96.00%
+
 **Prediction Confidence:** 96.00%
 
 The probability and confidence values are generated from the trained Random Forest model using `predict_proba()`.
@@ -174,7 +176,6 @@ The probability and confidence values are generated from the trained Random Fore
 
 ## Project Structure
 
-```text
 delivery-delay-prediction/
 │
 ├── data/
@@ -191,6 +192,8 @@ delivery-delay-prediction/
 ├── README.md
 └── requirements.txt
 
+---
+
 ## Requirements
 
 The project uses:
@@ -204,8 +207,9 @@ The project uses:
 
 Install the required packages using:
 
-```text
-pip install -r requirements.txt
+`pip install -r requirements.txt`
+
+---
 
 ## How to Run
 
@@ -213,8 +217,7 @@ pip install -r requirements.txt
 
 From the project root:
 
-```text
-python src/train.py
+`python src/train.py`
 
 This performs data processing, visualization, model training, evaluation, and saves the trained model.
 
@@ -235,20 +238,20 @@ Choose:
 
 The project follows a basic MLOps workflow:
 
-Dataset  
-↓  
-Data Cleaning  
-↓  
-Exploratory Data Analysis  
-↓  
-Feature Preprocessing  
-↓  
-Model Training  
-↓  
-Model Evaluation  
-↓  
-Model Saving  
-↓  
+Dataset
+↓
+Data Cleaning
+↓
+Exploratory Data Analysis
+↓
+Feature Preprocessing
+↓
+Model Training
+↓
+Model Evaluation
+↓
+Model Saving
+↓
 Prediction Testing
 
 The project is maintained using Git and GitHub for version control.
