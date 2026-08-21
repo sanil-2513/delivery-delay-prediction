@@ -176,6 +176,7 @@ The probability and confidence values are generated from the trained Random Fore
 
 ## Project Structure
 
+```text
 delivery-delay-prediction/
 │
 ├── data/
@@ -191,6 +192,7 @@ delivery-delay-prediction/
 ├── .gitignore
 ├── README.md
 └── requirements.txt
+```
 
 ---
 
@@ -238,6 +240,7 @@ Choose:
 
 The project follows a basic MLOps workflow:
 
+```text
 Dataset
 ↓
 Data Cleaning
@@ -253,6 +256,7 @@ Model Evaluation
 Model Saving
 ↓
 Prediction Testing
+```
 
 The project is maintained using Git and GitHub for version control.
 
