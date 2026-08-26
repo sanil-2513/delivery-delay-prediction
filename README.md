@@ -227,6 +227,8 @@ This performs data processing, visualization, model training, evaluation, and sa
 
 `python src/test.py`
 
+The system can be tested using normal, risky, and custom delivery scenarios.
+
 Choose:
 
 1. Normal Delivery
