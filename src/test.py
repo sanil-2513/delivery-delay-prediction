@@ -2,26 +2,83 @@ import joblib
 import pandas as pd
 
 
-# ==========================================
-# LOAD TRAINED MODEL
-# ==========================================
+MODEL_PATH = "models/delivery_delay_model.pkl"
 
-model = joblib.load("models/delivery_delay_model.pkl")
+model = joblib.load(MODEL_PATH)
+
+print("Model loaded successfully.")
 
 
-# ==========================================
-# HELPER FUNCTIONS
-# ==========================================
+def get_text_input(prompt, default):
+    """Get a text value from the user."""
+    value = input(f"{prompt} [{default}]: ").strip()
+
+    if value == "":
+        return default
+
+    return value
+
+
+def get_float_input(prompt, default, minimum=None):
+    """Get a valid floating-point value."""
+    while True:
+        value = input(f"{prompt} [{default}]: ").strip()
+
+        if value == "":
+            return default
+
+        try:
+            value = float(value)
+
+            if minimum is not None and value < minimum:
+                print(f"Please enter a value >= {minimum}.")
+                continue
+
+            return value
+
+        except ValueError:
+            print("Please enter a valid number.")
+
+
+def get_integer_input(prompt, default, minimum=None, maximum=None):
+    """Get a valid integer value."""
+    while True:
+        value = input(f"{prompt} [{default}]: ").strip()
+
+        if value == "":
+            return default
+
+        try:
+            value = int(value)
+
+            if minimum is not None and value < minimum:
+                print(f"Please enter a value >= {minimum}.")
+                continue
+
+            if maximum is not None and value > maximum:
+                print(f"Please enter a value <= {maximum}.")
+                continue
+
+            return value
+
+        except ValueError:
+            print("Please enter a valid integer.")
+
 
 def predict_delivery(data):
+
     df = pd.DataFrame([data])
 
     prediction = model.predict(df)[0]
+
     probabilities = model.predict_proba(df)[0]
+
     classes = model.classes_
 
     if "yes" in classes:
-        delay_probability = probabilities[list(classes).index("yes")]
+        delay_probability = probabilities[
+            list(classes).index("yes")
+        ]
     else:
         delay_probability = 0.0
 
@@ -30,16 +87,36 @@ def predict_delivery(data):
     return prediction, delay_probability, confidence
 
 
-def display_result(data, prediction, delay_probability, confidence):
+
+def get_risk_level(delay_probability):
+
+    if delay_probability >= 0.70:
+        return "HIGH RISK"
+
+    elif delay_probability >= 0.40:
+        return "MEDIUM RISK"
+
+    else:
+        return "LOW RISK"
+
+
+def display_result(
+    data,
+    prediction,
+    delay_probability,
+    confidence
+):
 
     if prediction == "yes":
         status = "DELAYED"
     else:
         status = "ON TIME"
 
-    print("\n" + "=" * 50)
+    risk_level = get_risk_level(delay_probability)
+
+    print("\n" + "=" * 55)
     print("              PREDICTION RESULT")
-    print("=" * 50)
+    print("=" * 55)
 
     print("\nDelivery Details")
     print("-" * 30)
@@ -54,21 +131,28 @@ def display_result(data, prediction, delay_probability, confidence):
     print(f"Package Weight   : {data['package_weight_kg']:.1f} kg")
     print(f"Expected Time    : {data['expected_time_hours']:.1f} hours")
     print(f"Delivery Rating  : {data['delivery_rating']}")
-    print(f"Delivery Cost    : ₹{data['delivery_cost']:.2f}")
+
+    print(f"Delivery Cost    : Rs.{data['delivery_cost']:.2f}")
 
     print("\nPrediction")
     print("-" * 30)
 
-    print(f"Status           : {status}")
-    print(f"Delay Probability: {delay_probability * 100:.2f}%")
-    print(f"Prediction Confidence: {confidence * 100:.2f}%")
+    print(f"Status              : {status}")
 
-    print("\n" + "=" * 50)
+    print(
+        f"Delay Probability   : "
+        f"{delay_probability * 100:.2f}%"
+    )
 
+    print(
+        f"Prediction Confidence: "
+        f"{confidence * 100:.2f}%"
+    )
 
-# ==========================================
-# DEMO SCENARIOS
-# ==========================================
+    print(f"Risk Level          : {risk_level}")
+
+    print("\n" + "=" * 55)
+
 
 base_data = {
     "delivery_id": 25001,
@@ -88,35 +172,36 @@ base_data = {
 
 normal_candidates = [
     base_data.copy(),
-    {**base_data, "distance_km": 80, "package_weight_kg": 5},
-    {**base_data, "distance_km": 50, "package_weight_kg": 3},
-    {**base_data, "distance_km": 100, "package_weight_kg": 8}
+
+    {
+        **base_data,
+        "distance_km": 80,
+        "package_weight_kg": 5
+    },
+
+    {
+        **base_data,
+        "distance_km": 50,
+        "package_weight_kg": 3
+    },
+
+    {
+        **base_data,
+        "distance_km": 100,
+        "package_weight_kg": 8
+    }
 ]
 
 
-# ==========================================
-# FIND A MODEL-VERIFIED DELAYED EXAMPLE
-# ==========================================
 
 dataset = pd.read_csv("data/delivery_data.csv")
 
-feature_columns = [
-    "delivery_partner",
-    "package_type",
-    "vehicle_type",
-    "delivery_mode",
-    "region",
-    "weather_condition",
-    "distance_km",
-    "package_weight_kg",
-    "expected_time_hours",
-    "delivery_rating",
-    "delivery_cost"
-]
-
 risky_candidates = []
 
-delayed_rows = dataset[dataset["delayed"] == "yes"]
+delayed_rows = dataset[
+    dataset["delayed"] == "yes"
+]
+
 
 for _, row in delayed_rows.iterrows():
 
@@ -135,49 +220,49 @@ for _, row in delayed_rows.iterrows():
         "delivery_cost": row["delivery_cost"]
     }
 
-    prediction, delay_probability, confidence = predict_delivery(candidate)
+    prediction, delay_probability, confidence = (
+        predict_delivery(candidate)
+    )
 
     if prediction == "yes":
         risky_candidates.append(candidate)
         break
 
 
-# ==========================================
-# MAIN MENU
-# ==========================================
-
 while True:
 
-    print("\n" + "=" * 50)
+    print("\n" + "=" * 55)
     print("       DELIVERY DELAY PREDICTION SYSTEM")
-    print("=" * 50)
+    print("=" * 55)
 
     print("\n1. Normal Delivery")
     print("2. Risky Delivery")
     print("3. Custom Delivery")
     print("4. Exit")
 
-    choice = input("\nSelect option: ")
+    choice = input("\nSelect option: ").strip()
 
-    # --------------------------------------
-    # NORMAL DELIVERY
-    # --------------------------------------
 
     if choice == "1":
 
         selected_data = None
 
         for data in normal_candidates:
-            prediction, delay_probability, confidence = predict_delivery(data)
+
+            prediction, delay_probability, confidence = (
+                predict_delivery(data)
+            )
 
             if prediction == "no":
                 selected_data = data
                 break
 
         if selected_data is None:
+
             selected_data = normal_candidates[0]
-            prediction, delay_probability, confidence = predict_delivery(
-                selected_data
+
+            prediction, delay_probability, confidence = (
+                predict_delivery(selected_data)
             )
 
         display_result(
@@ -187,26 +272,20 @@ while True:
             confidence
         )
 
-    # --------------------------------------
-    # RISKY DELIVERY
-    # --------------------------------------
 
     elif choice == "2":
 
-        selected_data = None
+        if not risky_candidates:
 
-        for data in risky_candidates:
-            prediction, delay_probability, confidence = predict_delivery(data)
+            print("\nNo model-verified risky delivery found.")
 
-            if prediction == "yes":
-                selected_data = data
-                break
+            continue
 
-        if selected_data is None:
-            selected_data = risky_candidates[0]
-            prediction, delay_probability, confidence = predict_delivery(
-                selected_data
-            )
+        selected_data = risky_candidates[0]
+
+        prediction, delay_probability, confidence = (
+            predict_delivery(selected_data)
+        )
 
         display_result(
             selected_data,
@@ -215,58 +294,72 @@ while True:
             confidence
         )
 
-    # --------------------------------------
-    # CUSTOM DELIVERY
-    # --------------------------------------
 
     elif choice == "3":
 
         print("\nEnter delivery details.")
-        print("Press ENTER to use the default sample values.")
-        print("-" * 50)
+        print("Press ENTER to use the default value.")
+        print("-" * 55)
 
-        delivery_partner = input(
-            "Delivery Partner [delhivery]: "
-        ) or "delhivery"
-
-        package_type = input(
-            "Package Type [electronics]: "
-        ) or "electronics"
-
-        vehicle_type = input(
-            "Vehicle Type [bike]: "
-        ) or "bike"
-
-        delivery_mode = input(
-            "Delivery Mode [express]: "
-        ) or "express"
-
-        region = input(
-            "Region [west]: "
-        ) or "west"
-
-        weather_condition = input(
-            "Weather Condition [clear]: "
-        ) or "clear"
-
-        distance_km = float(
-            input("Distance (km) [150]: ") or 150
+        delivery_partner = get_text_input(
+            "Delivery Partner",
+            "delhivery"
         )
 
-        package_weight_kg = float(
-            input("Package Weight (kg) [10]: ") or 10
+        package_type = get_text_input(
+            "Package Type",
+            "electronics"
         )
 
-        expected_time_hours = float(
-            input("Expected Time (hours) [8]: ") or 8
+        vehicle_type = get_text_input(
+            "Vehicle Type",
+            "bike"
         )
 
-        delivery_rating = int(
-            input("Delivery Rating (1-5) [4]: ") or 4
+        delivery_mode = get_text_input(
+            "Delivery Mode",
+            "express"
         )
 
-        delivery_cost = float(
-            input("Delivery Cost [850]: ") or 850
+        region = get_text_input(
+            "Region",
+            "west"
+        )
+
+        weather_condition = get_text_input(
+            "Weather Condition",
+            "clear"
+        )
+
+        distance_km = get_float_input(
+            "Distance (km)",
+            150,
+            minimum=0
+        )
+
+        package_weight_kg = get_float_input(
+            "Package Weight (kg)",
+            10,
+            minimum=0
+        )
+
+        expected_time_hours = get_float_input(
+            "Expected Time (hours)",
+            8,
+            minimum=0
+        )
+
+        delivery_rating = get_integer_input(
+            "Delivery Rating (1-5)",
+            4,
+            minimum=1,
+            maximum=5
+        )
+
+        delivery_cost = get_float_input(
+            "Delivery Cost",
+            850,
+            minimum=0
         )
 
         custom_data = {
@@ -284,8 +377,8 @@ while True:
             "delivery_cost": delivery_cost
         }
 
-        prediction, delay_probability, confidence = predict_delivery(
-            custom_data
+        prediction, delay_probability, confidence = (
+            predict_delivery(custom_data)
         )
 
         display_result(
@@ -295,10 +388,6 @@ while True:
             confidence
         )
 
-    # --------------------------------------
-    # EXIT
-    # --------------------------------------
-
     elif choice == "4":
 
         print("\nExiting Delivery Delay Prediction System.")
@@ -306,4 +395,7 @@ while True:
 
     else:
 
-        print("\nInvalid option. Please select 1, 2, 3 or 4.")
+        print(
+            "\nInvalid option. "
+            "Please select 1, 2, 3 or 4."
+        )
